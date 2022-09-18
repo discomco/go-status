@@ -1,5 +1,10 @@
 package status
 
+import "sync"
+
+var sMutex = &sync.Mutex{}
+var mMutex = &sync.Mutex{}
+
 // HasStatus accepts an input status and will check if the flag is set using bitwise OR and return true if the flag is set.
 func HasStatus[T ~int](status T, flag T) bool {
 	return status|flag == status
@@ -12,16 +17,22 @@ func NotHasStatus[T ~int](status T, flag T) bool {
 
 // UnsetStatus accepts an input status reference and will unset the flag using bitwise AND NOT.
 func UnsetStatus[T ~int](status *T, flag T) {
+	sMutex.Lock()
+	defer sMutex.Unlock()
 	*status = *status &^ flag
 }
 
 // ForceStatus accepts an input status reference and will simply overwrite the status with the flag.
 func ForceStatus[T ~int](status *T, flag T) {
+	sMutex.Lock()
+	defer sMutex.Unlock()
 	*status = flag
 }
 
 // SetStatus accepts an input status reference and will set the flag to the status using bitwise OR.
 func SetStatus[T ~int](status *T, flag T) {
+	sMutex.Lock()
+	defer sMutex.Unlock()
 	*status = *status | flag
 }
 
@@ -37,6 +48,8 @@ func SetMulti[T ~int](status *T, flags ...T) {
 
 // HasMulti allows you to check for many flags at once.
 func HasMulti[T ~int](status T, flags ...T) bool {
+	mMutex.Lock()
+	defer mMutex.Unlock()
 	if len(flags) == 0 {
 		return false
 	}
@@ -50,6 +63,8 @@ func HasMulti[T ~int](status T, flags ...T) bool {
 
 // UnsetMulti allows you to clear multiple flags at once.
 func UnsetMulti[T ~int](status *T, flags ...T) {
+	mMutex.Lock()
+	defer mMutex.Unlock()
 	if len(flags) == 0 {
 		return
 	}
